@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/categories/<int:category_id>/', views.update_category, name='update_category'),
     path('api/categories/', views.get_categories, name='get_categories'),
     path('api/category_statistics/<int:user_id>/', views.get_category_statistics, name='get_category_statistics'),
-   path('api/shannon_equitability/<int:user_id>/', views.get_shannon_equitability_by_category, name='get_shannon_equitability_by_category'),
+    path('api/shannon_equitability/<int:user_id>/', views.get_shannon_equitability_by_category, name='get_shannon_equitability_by_category'),
     path('api/frequent_nouns/<int:user_id>/', views.get_frequent_nouns_by_category, name='get_frequent_nouns_by_category'),
+    path('api/text_entropy_shannon_by_content/', views.text_entropy_shannon_by_content, name='text_entropy_shannon_by_content')
 ]

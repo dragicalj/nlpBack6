@@ -377,3 +377,19 @@ def get_frequent_nouns_by_category(request, user_id):
             })
 
     return Response(category_nouns)
+
+@api_view(['POST'])
+def text_entropy_shannon_by_content(request):
+    text = request.data.get('text')
+    if not text:
+        return Response({'error': 'No text provided'}, status=400)
+    
+    tokens = word_tokenize(text)
+    tokens = [token.lower() for token in tokens]
+
+    token_counts = Counter(tokens)
+    num_tokens=len(token_counts)
+    entropy = calculate_entropy(token_counts)
+    shannon_value = calculate_shannon_value(entropy, num_tokens)
+    
+    return Response({'entropy': entropy, 'shannon_value': shannon_value})
