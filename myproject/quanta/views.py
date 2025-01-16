@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .models import Text, Token, Category, CustomUser
 from .serializers import TextSerializer, CategorySerializer, UserSerializer
 from .utils import calculate_entropy, calculate_shannon_value, tokenize_and_categorize
-from .utils import chat_with_gpt
+from .utils import chat_with_chatgpt, chat_with_llama, chat_with_gemini, chat_with_command, chat_with_claude, chat_with_qwen
 import nltk
 from nltk.tokenize import word_tokenize
 from collections import Counter
@@ -51,8 +51,23 @@ def create_text(request):
 @api_view(['GET'])
 def get_generated_text(request):
     prompt = request.query_params.get('prompt', 'Default prompt if none provided')
+    model = request.query_params.get('model', 'default_model')
     try:
-        generated_text = chat_with_gpt(prompt)
+        match(model):
+            case "chatgpt":
+                generated_text = chat_with_chatgpt(prompt)
+            case "llama":
+                generated_text = chat_with_llama(prompt)
+            case "gemini":
+                generated_text = chat_with_gemini(prompt)
+            case "claude":
+                generated_text = chat_with_claude(prompt)
+            case "command":
+                generated_text = chat_with_command(prompt)
+            case "qwen":
+                generated_text = chat_with_qwen(prompt)
+            case _:
+                generated_text = chat_with_chatgpt(prompt)
         return Response({'generated_text': generated_text}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
