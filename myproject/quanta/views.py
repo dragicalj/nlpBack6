@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .models import Text, Token, Category, CustomUser
 from .serializers import TextSerializer, CategorySerializer, UserSerializer
 from .utils import calculate_entropy, calculate_shannon_value, tokenize_and_categorize
-from .utils import chat_with_chatgpt, chat_with_llama, chat_with_gemini, chat_with_command, chat_with_claude, chat_with_qwen
+from .utils import chat_with_chatgpt, chat_with_llama, chat_with_gemini, chat_with_command, chat_with_claude, chat_with_qwen, chat_with_deepseek
 import nltk
 from nltk.tokenize import word_tokenize
 from collections import Counter
@@ -66,6 +66,8 @@ def get_generated_text(request):
                 generated_text = chat_with_command(prompt)
             case "qwen":
                 generated_text = chat_with_qwen(prompt)
+            case "deepseek":
+                generated_text = chat_with_deepseek(prompt)
             case _:
                 generated_text = chat_with_chatgpt(prompt)
         return Response({'generated_text': generated_text}, status=status.HTTP_200_OK)

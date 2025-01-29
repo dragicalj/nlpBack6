@@ -158,3 +158,15 @@ def chat_with_qwen(prompt):
     )
     # return completion.model_dump_json()
     return completion.choices[0].message.content.strip()
+
+def chat_with_deepseek(prompt):
+    client = OpenAI(api_key="API_KEY", base_url="https://api.deepseek.com")
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "user", "content": prompt},
+        ],
+        stream=False,
+        temperature=1
+    )
+    return response.choices[0].message.content.strip()
