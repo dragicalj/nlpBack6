@@ -1,4 +1,3 @@
-import re
 import random
 from rest_framework import status, generics
 from rest_framework.decorators import api_view
@@ -19,11 +18,6 @@ from django.contrib.auth import authenticate
 from django.db.models import Count
 from django.db import models
 from django.db.models import Avg, Count
-from better_profanity import profanity
-from spellchecker import SpellChecker
-from gramformer import Gramformer
-import torch
-from .validators import ProfanityValidator, SpellingValidator, GrammarValidator
 
 @api_view(['POST'])
 def create_text(request):
@@ -416,60 +410,3 @@ def text_entropy_shannon_by_content(request):
     shannon_value = calculate_shannon_value(entropy, num_tokens)
     
     return Response({'entropy': entropy, 'shannon_value': shannon_value})
-
-
-class ValidationClient:
-    def __init__(self):
-        self.validator_chain = ProfanityValidator(SpellingValidator(GrammarValidator()))
-
-    def validate(self, text):
-        errors = {"offensive": False, "spelling": False, "grammar": False}
-        self.validator_chain.validate(text, errors)  
-
-        return errors  
-
-
-validation_client = ValidationClient()
-
-@api_view(["POST"])
-def validate_text(request):
-
-    text = request.data.get("text", "").strip()
-
-    if not text:
-        return Response({"error": "Empty text provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-    validation_results = validation_client.validate(text)
-
-    return Response(validation_results, status=status.HTTP_200_OK)
-
-@api_view(["POST"])
-def fix_selected_errors(request):
-    text = request.data.get("text", "").strip()
-    fix_spelling = request.data.get("fix_spelling", False)
-    fix_grammar = request.data.get("fix_grammar", False)
-    fix_profanity = request.data.get("fix_profanity", False)
-
-    if not text:
-        return Response({"error": "Empty text provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-    if not (fix_spelling or fix_grammar or fix_profanity):
-        return Response({"error": "No corrections selected"}, status=status.HTTP_400_BAD_REQUEST)
-
-    prompt_parts = [f'Correct the following text without adding explanations or comments: "{text}"']
-
-    if fix_spelling:
-        prompt_parts.append("Fix only spelling mistakes, keeping the original meaning intact.")
-    if fix_grammar:
-        prompt_parts.append("Fix only grammatical errors, keeping the original meaning intact.")
-    if fix_profanity:
-        prompt_parts.append("Replace ALL offensive words with '****' and do NOT replace them with other words.")
-
-    prompt = " ".join(prompt_parts)
-
-    try:
-        fixed_text = chat_with_chatgpt(prompt).strip()
-    except Exception as e:
-        return Response({"error": f"Error processing request: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    return Response({"fixed_text": fixed_text}, status=status.HTTP_200_OK)
