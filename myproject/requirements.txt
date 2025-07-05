@@ -3,7 +3,7 @@ Django
 djangorestframework
 djangorestframework-simplejwt
 meta_ai_api
-nltk
+nltk==3.7
 openai
 protobuf
 python-dotenv

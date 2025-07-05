@@ -6,8 +6,8 @@ from .models import Text, Token, Category, CustomUser
 from .serializers import TextSerializer, CategorySerializer, UserSerializer
 from .utils import calculate_entropy, calculate_shannon_value, tokenize_and_categorize
 from .utils import chat_with_chatgpt, chat_with_llama, chat_with_gemini, chat_with_command, chat_with_claude, chat_with_qwen, chat_with_deepseek
-import nltk
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import PunktSentenceTokenizer, word_tokenize
+import nltk.data
 from collections import Counter
 import string
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -27,7 +27,11 @@ def create_text(request):
         if serializer.is_valid():
             content = serializer.validated_data['content']
             
-            tokens = word_tokenize(content)
+            sent_detector = nltk.data.load("tokenizers/punkt/english.pickle")
+            sentences = sent_detector.tokenize(content)
+            tokens = []
+            for sentence in sentences:
+                tokens.extend(word_tokenize(sentence))
             tokens = [token.lower() for token in tokens]
             num_occurrences=len(tokens)
 

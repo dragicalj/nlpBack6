@@ -26,6 +26,7 @@ COPY requirements.txt /app/
 # Install project dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN python -m nltk.downloader punkt
 # Copy the Django project code to the working directory
 COPY . /app/
 
