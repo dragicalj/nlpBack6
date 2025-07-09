@@ -14,6 +14,7 @@ import anthropic
 import cohere
 import torch
 from transformers import pipeline
+import replicate
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -80,30 +81,18 @@ def chat_with_chatgpt(prompt):
     return completion.choices[0].message.content.strip()
 
 def chat_with_llama(prompt):
-    # ----------API-------------
-    # prompt = remove_special_characters(prompt)
-    # ai = MetaAI()
-    # response = ai.prompt(message=prompt)
-    # return response
-    # --------Lokalno-----------
-    model = "PATH_TO_MODEL"
-    pipe = pipeline(
-        "text-generation",
-        model=model,
-        model_kwargs={
-            "torch_dtype": torch.bfloat16
-        },
-        device="cuda"
+    prompt = remove_special_characters(prompt)
+    client = replicate.Client(api_token="API_KEY")
+    output = client.run(
+        "meta/meta-llama-3-8b-instruct",
+        input={
+            "prompt": prompt,
+            "max_new_tokens": 200,
+            "temperature": 0.7,
+            "top_p": 0.9,
+        }
     )
-    messages = [
-        {"role": "user", "content": prompt}
-    ]
-    outputs = pipe(
-        messages,
-        max_new_tokens=4096,
-        do_sample=False
-    )
-    return outputs[0]["generated_text"][-1]["content"]
+    return "".join(output).strip()
 
 def chat_with_gemini(prompt):
     prompt = remove_special_characters(prompt)
@@ -129,7 +118,7 @@ def chat_with_claude(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    return message.content
+    return ''.join(block.text for block in message.content if hasattr(block, 'text'))
 
 def chat_with_command(prompt):
     prompt = remove_special_characters(prompt)
@@ -141,7 +130,7 @@ def chat_with_command(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    return response
+    return ''.join(block.text for block in response.message.content if hasattr(block, 'text'))
 
 def chat_with_qwen(prompt):
     prompt = remove_special_characters(prompt)
@@ -170,3 +159,26 @@ def chat_with_deepseek(prompt):
         temperature=1
     )
     return response.choices[0].message.content.strip()
+
+def chat_with_perplexity(prompt):
+    url = "https://api.perplexity.ai/chat/completions"
+
+    headers = {
+        "Authorization": "Bearer API_KEY",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "sonar",
+        "messages": [
+            {"role": "system", "content": "Be precise and concise."},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Greška {response.status_code}: {response.text}"
