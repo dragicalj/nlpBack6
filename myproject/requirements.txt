@@ -16,3 +16,4 @@ mysqlclient
 gunicorn
 google-generativeai
 cohere
+replicate==1.0.7
